@@ -13,7 +13,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // 🔥 본인의 Firebase 설정값을 여기에 다시 입력해주세요.
+        // 🔥 본인의 Firebase 설정값을 다시 입력해주세요
         const firebaseConfig = {
             apiKey: "AIzaSyAhyaqxkX9_CZvnzDn4Ok0qQWQGdppnt-M",
             authDomain: "wedding-ccf16.firebaseapp.com",
@@ -145,7 +145,7 @@
     </div>
 
     <div class="app-container">
-        <!-- 메인 섹션 -->
+        <!-- 메인 비주얼 -->
         <div class="main-visual">
             <img id="main-img-tag" class="main-img" src="https://i.postimg.cc/Lst4jx2C/A(185).jpg">
             <div class="main-overlay">
@@ -162,7 +162,7 @@
             </div>
         </div>
 
-        <!-- 초대 인사 -->
+        <!-- 초대글 -->
         <section class="bg-white">
             <h3 class="section-title">INVITATION</h3>
             <p id="intro-msg" class="editable whitespace-pre-line text-sm text-gray-600 leading-8 w-full">전주에서 온 남자와
@@ -179,6 +179,16 @@
 부디 귀한 걸음 하시어
 기쁨의 자리를 축복으로
 더욱 빛내 주시길 바라옵니다.</p>
+
+            <!-- 👨‍👩‍👧‍👦 가족 관계 정보 (복구됨) -->
+            <div class="mt-12 space-y-4 text-sm text-gray-700">
+                <div class="flex justify-center items-center gap-2">
+                    <span id="father-groom" class="editable font-medium">장기탁</span> · <span id="mother-groom" class="editable font-medium">김정자</span> <span class="text-xs text-gray-400 mx-1 text-[11px]">의 아들</span> <span id="groom-name-small" class="editable font-bold">덕진</span>
+                </div>
+                <div class="flex justify-center items-center gap-2">
+                    <span id="father-bride" class="editable font-medium">이몽룡</span> · <span id="mother-bride" class="editable font-medium">김혜숙</span> <span class="text-xs text-gray-400 mx-1 text-[11px]">의 딸</span> <span id="bride-name-small" class="editable font-bold">영리</span>
+                </div>
+            </div>
         </section>
 
         <!-- 갤러리 -->
@@ -187,20 +197,19 @@
             <div id="gallery-container" class="grid grid-cols-3 gap-1 px-2"></div>
         </section>
 
-        <!-- 찾아오시는 길 -->
+        <!-- 오시는 길 -->
         <section class="bg-[#fcfaf9]">
             <h3 class="section-title">LOCATION</h3>
             <p id="loc-name" class="editable font-bold text-lg">포마레 웨딩 컨벤션</p>
             <p id="loc-addr" class="editable text-xs text-gray-500 mt-1">경북 포항시 남구 희망대로 815</p>
             
-            <!-- 기존 약도 이미지 -->
             <div class="map-container">
                 <img id="map-img-tag" class="map-img" src="https://i.postimg.cc/jd6LHqcJ/yagdo2.jpg">
             </div>
 
-            <!-- 🔥 요청하신 추가 이미지 공간 (아래 src="이미지주소" 부분을 수정하세요) -->
+            <!-- 🔥 요청하신 추가 이미지 공간 -->
             <div class="map-container mb-6">
-                <img id="extra-map-image" class="map-img" src="https://i.postimg.cc/gcfQ88k3/jucha-annae.jpg" alt="주차 안내 등 추가 정보">
+                <img id="extra-map-image" class="map-img" src="https://i.postimg.cc/gcfQ88k3/jucha-annae.jpg" alt="추가 안내 정보">
             </div>
 
             <div class="mb-8">
@@ -223,7 +232,7 @@
             </div>
         </section>
 
-        <!-- 계좌번호 -->
+        <!-- 축의금 계좌 -->
         <section class="bg-[#fcfaf9]">
             <h3 class="section-title">GIFT</h3>
             <div class="space-y-4 text-left">
