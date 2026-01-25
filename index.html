@@ -13,7 +13,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // 🔥 본인의 Firebase 설정값을 다시 입력해주세요
         const firebaseConfig = {
             apiKey: "AIzaSyAhyaqxkX9_CZvnzDn4Ok0qQWQGdppnt-M",
             authDomain: "wedding-ccf16.firebaseapp.com",
@@ -62,8 +61,8 @@
                 const data = doc.data();
                 const date = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleDateString() : '방금 전';
                 list.innerHTML += `
-                    <div class="bg-gray-50 p-4 rounded-lg text-sm border border-gray-100 text-left">
-                        <div class="font-bold mb-1">${data.name} <span class="text-[10px] font-normal text-gray-400 ml-2">${date}</span></div>
+                    <div class="bg-white p-4 rounded-lg text-sm border border-gray-100 text-left shadow-sm">
+                        <div class="font-bold mb-1 text-gray-800">${data.name} <span class="text-[10px] font-normal text-gray-400 ml-2">${date}</span></div>
                         <div class="text-gray-600 leading-relaxed">${data.msg}</div>
                     </div>
                 `;
@@ -86,8 +85,6 @@
             background-color: #f3f3f3;
             line-height: 1.8;
             -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
             user-select: none;
         }
         .app-container {
@@ -98,12 +95,12 @@
             position: relative;
             min-height: 100vh;
         }
-        section { padding: 60px 20px; text-align: center; }
+        section { padding: 60px 24px; text-align: center; }
         .section-title {
             font-family: 'Nanum Myeongjo', serif;
             font-size: 1.25rem;
             color: var(--accent-color);
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
             letter-spacing: 3px;
         }
         .main-visual { position: relative; height: 100vh; overflow: hidden; display: flex; flex-direction: column; justify-content: center; background: #eee; }
@@ -111,20 +108,19 @@
         .main-img.loaded { opacity: 1; }
         .main-overlay { position: relative; z-index: 10; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 80px; }
         .gallery-item { position: relative; overflow: hidden; border-radius: 4px; aspect-ratio: 1/1; cursor: pointer; }
-        .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+        .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
         #lightbox {
             display: none;
             position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.9);
-            justify-content: center; align-items: center; flex-direction: column;
+            background-color: rgba(0,0,0,0.95);
+            justify-content: center; align-items: center;
         }
-        #lightbox img { max-width: 90%; max-height: 80%; object-fit: contain; }
-        .map-container { position: relative; overflow: hidden; border-radius: 8px; margin: 20px 0; background: #f0f0f0; min-height: 100px; }
-        .map-img { width: 100%; height: auto; display: block; object-fit: cover; }
+        .map-container { position: relative; overflow: hidden; border-radius: 8px; margin: 20px 0; background: #f9f9f9; border: 1px solid #eee; }
+        .map-img { width: 100%; height: auto; display: block; }
         
-        #admin-trigger { position: fixed; bottom: 0; right: 0; width: 40px; height: 40px; z-index: 999; cursor: default; }
+        #admin-trigger { position: fixed; bottom: 0; right: 0; width: 50px; height: 50px; z-index: 999; }
         .admin-panel { position: fixed; top: 20px; right: 20px; z-index: 9999; display: none; gap: 8px; }
-        .edit-mode .editable { outline: 1px dashed var(--accent-color); background: rgba(255,255,255,0.5); }
+        .edit-mode .editable { outline: 2px dashed #b89b8e; background: rgba(184, 155, 142, 0.1); padding: 2px 4px; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -135,28 +131,23 @@
         <button onclick="saveToLocal()" class="bg-rose-400 text-white px-4 py-2 rounded-full text-xs font-bold">저장</button>
     </div>
 
-    <div id="lightbox">
-        <span class="absolute top-5 right-5 text-white text-3xl cursor-pointer" onclick="closeLightbox()">&times;</span>
-        <div class="flex items-center w-full justify-between px-4">
-            <span class="text-white text-4xl p-4 cursor-pointer" onclick="changeLightboxImage(-1)">&#10094;</span>
-            <img id="lightbox-img" src="">
-            <span class="text-white text-4xl p-4 cursor-pointer" onclick="changeLightboxImage(1)">&#10095;</span>
-        </div>
+    <div id="lightbox" onclick="closeLightbox()">
+        <img id="lightbox-img" src="" class="max-w-[95%] max-h-[85%] object-contain shadow-2xl">
     </div>
 
-    <div class="app-container">
+    <div class="app-container shadow-2xl">
         <!-- 메인 비주얼 -->
         <div class="main-visual">
             <img id="main-img-tag" class="main-img" src="https://i.postimg.cc/Lst4jx2C/A(185).jpg">
             <div class="main-overlay">
-                <div class="bg-white/80 py-10 px-6 backdrop-blur-sm relative z-20">
-                    <p class="text-xs tracking-[0.3em] text-gray-500 mb-4 text-center">WE ARE GETTING MARRIED</p>
-                    <h1 class="text-3xl font-light mb-6 tracking-widest text-center">
+                <div class="bg-white/85 py-12 px-6 backdrop-blur-sm relative z-20 shadow-lg">
+                    <p class="text-[10px] tracking-[0.4em] text-gray-400 mb-5 text-center">WE ARE GETTING MARRIED</p>
+                    <h1 class="text-3xl font-light mb-8 tracking-widest text-center text-gray-800">
                         <span id="groom" class="editable">장덕진</span> 
-                        <span class="text-gray-300 mx-1">|</span> 
+                        <span class="text-gray-300 mx-2 text-2xl font-thin">|</span> 
                         <span id="bride" class="editable">이영리</span>
                     </h1>
-                    <p id="wedding-info-top" class="editable text-sm text-gray-600 text-center w-full whitespace-pre-line">2026. 04. 11. 토요일 오후 1:00
+                    <p id="wedding-info-top" class="editable text-sm text-gray-500 text-center w-full whitespace-pre-line leading-relaxed font-light">2026. 04. 11. 토요일 오후 1:00
 포마레 웨딩 컨벤션</p>
                 </div>
             </div>
@@ -165,7 +156,7 @@
         <!-- 초대글 -->
         <section class="bg-white">
             <h3 class="section-title">INVITATION</h3>
-            <p id="intro-msg" class="editable whitespace-pre-line text-sm text-gray-600 leading-8 w-full">전주에서 온 남자와
+            <p id="intro-msg" class="editable whitespace-pre-line text-[15px] text-gray-600 leading-9 w-full mb-16">전주에서 온 남자와
 포항에서 자란 여자가
 입맛이 맞더니 마음도 맞게 되었고,
 그 인연으로
@@ -180,19 +171,27 @@
 기쁨의 자리를 축복으로
 더욱 빛내 주시길 바라옵니다.</p>
 
-            <!-- 👨‍👩‍👧‍👦 가족 관계 정보 (복구됨) -->
-            <div class="mt-12 space-y-4 text-sm text-gray-700">
-                <div class="flex justify-center items-center gap-2">
-                    <span id="father-groom" class="editable font-medium">장기탁</span> · <span id="mother-groom" class="editable font-medium">김정자</span> <span class="text-xs text-gray-400 mx-1 text-[11px]">의 아들</span> <span id="groom-name-small" class="editable font-bold">덕진</span>
+            <!-- 👨‍👩‍👧‍👦 가족 관계 정보 (가독성 강화 버전) -->
+            <div class="py-8 border-t border-b border-gray-50 bg-[#fafafa]/50 rounded-xl space-y-5 text-[15px] text-gray-800">
+                <div class="flex justify-center items-center">
+                    <span id="father-groom" class="editable font-medium">장기탁</span>
+                    <span class="text-gray-300 mx-1">·</span>
+                    <span id="mother-groom" class="editable font-medium">김정자</span>
+                    <span class="text-xs text-gray-400 ml-3 mr-2 font-light">의 아들</span>
+                    <span id="groom-name-small" class="editable font-bold text-gray-900 text-base">덕진</span>
                 </div>
-                <div class="flex justify-center items-center gap-2">
-                    <span id="father-bride" class="editable font-medium">이몽룡</span> · <span id="mother-bride" class="editable font-medium">김혜숙</span> <span class="text-xs text-gray-400 mx-1 text-[11px]">의 딸</span> <span id="bride-name-small" class="editable font-bold">영리</span>
+                <div class="flex justify-center items-center">
+                    <span id="father-bride" class="editable font-medium text-gray-800">이몽룡</span>
+                    <span class="text-gray-300 mx-1">·</span>
+                    <span id="mother-bride" class="editable font-medium text-gray-800">김혜숙</span>
+                    <span class="text-xs text-gray-400 ml-3 mr-2 font-light">의 딸</span>
+                    <span id="bride-name-small" class="editable font-bold text-gray-900 text-base">영리</span>
                 </div>
             </div>
         </section>
 
         <!-- 갤러리 -->
-        <section>
+        <section class="bg-white">
             <h3 class="section-title">GALLERY</h3>
             <div id="gallery-container" class="grid grid-cols-3 gap-1 px-2"></div>
         </section>
@@ -200,21 +199,21 @@
         <!-- 오시는 길 -->
         <section class="bg-[#fcfaf9]">
             <h3 class="section-title">LOCATION</h3>
-            <p id="loc-name" class="editable font-bold text-lg">포마레 웨딩 컨벤션</p>
-            <p id="loc-addr" class="editable text-xs text-gray-500 mt-1">경북 포항시 남구 희망대로 815</p>
+            <p id="loc-name" class="editable font-bold text-xl text-gray-800">포마레 웨딩 컨벤션</p>
+            <p id="loc-addr" class="editable text-xs text-gray-500 mt-2 mb-6">경북 포항시 남구 희망대로 815</p>
             
-            <div class="map-container">
+            <div class="map-container shadow-sm">
                 <img id="map-img-tag" class="map-img" src="https://i.postimg.cc/jd6LHqcJ/yagdo2.jpg">
             </div>
 
-            <!-- 🔥 요청하신 추가 이미지 공간 -->
-            <div class="map-container mb-6">
-                <img id="extra-map-image" class="map-img" src="https://i.postimg.cc/gcfQ88k3/jucha-annae.jpg" alt="추가 안내 정보">
+            <!-- 🔥 추가 주차 안내 이미지 -->
+            <div class="map-container shadow-sm mb-10">
+                <img id="extra-map-image" class="map-img" src="https://i.postimg.cc/gcfQ88k3/jucha-annae.jpg" alt="주차 안내 정보">
             </div>
 
-            <div class="mb-8">
-                <a id="map-link-btn" href="https://naver.me/GUwSUdPw" target="_blank" class="inline-block bg-[#fee500] text-black text-sm px-6 py-3 rounded-lg font-bold">
-                    <i class="fa-solid fa-map-location-dot mr-2"></i>지도 앱에서 열기
+            <div class="mb-4">
+                <a href="https://naver.me/GUwSUdPw" target="_blank" class="w-full flex items-center justify-center bg-[#30fc03] text-black text-sm py-4 rounded-xl font-bold shadow-sm active:scale-95 transition">
+                    <i class="fa-solid fa-map-location-dot mr-2"></i>네이버 지도로 보기
                 </a>
             </div>
         </section>
@@ -222,55 +221,55 @@
         <!-- 방명록 -->
         <section class="bg-white">
             <h3 class="section-title">GUESTBOOK</h3>
-            <div class="px-4 text-left">
-                <div class="mb-6 bg-gray-50 p-4 rounded-lg">
-                    <input type="text" id="guest-name" placeholder="이름" class="w-full mb-2 p-2 text-sm border rounded">
-                    <textarea id="guest-msg" placeholder="축하 메시지를 남겨주세요" class="w-full p-2 text-sm border rounded h-20"></textarea>
-                    <button onclick="addGuestMessage()" class="w-full mt-2 bg-rose-300 text-white py-2 rounded font-bold text-sm">등록하기</button>
+            <div class="px-2 text-left">
+                <div class="mb-8 bg-gray-50 p-5 rounded-2xl border border-gray-100 shadow-inner">
+                    <input type="text" id="guest-name" placeholder="성함" class="w-full mb-3 p-3 text-sm border-none rounded-xl focus:ring-2 focus:ring-rose-200 outline-none">
+                    <textarea id="guest-msg" placeholder="두 사람에게 축복의 한마디를 남겨주세요" class="w-full p-3 text-sm border-none rounded-xl h-24 focus:ring-2 focus:ring-rose-200 outline-none resize-none"></textarea>
+                    <button onclick="addGuestMessage()" class="w-full mt-3 bg-rose-300 hover:bg-rose-400 text-white py-4 rounded-xl font-bold text-sm shadow-md transition active:translate-y-1">메시지 등록하기</button>
                 </div>
-                <div id="guest-list" class="space-y-4 max-h-[400px] overflow-y-auto"></div>
+                <div id="guest-list" class="space-y-4 max-h-[500px] overflow-y-auto pr-2"></div>
             </div>
         </section>
 
         <!-- 축의금 계좌 -->
         <section class="bg-[#fcfaf9]">
             <h3 class="section-title">GIFT</h3>
+            <p class="text-sm text-gray-500 mb-8 font-light">축복의 마음을 담아 전해주시는<br>소중한 정성을 감사히 받겠습니다.</p>
             <div class="space-y-4 text-left">
-                <details class="group bg-white rounded-lg border">
-                    <summary class="list-none p-4 flex justify-between items-center cursor-pointer">
-                        <span class="text-sm font-bold text-blue-900">신랑측 계좌번호</span>
-                        <i class="fa-solid fa-chevron-down text-xs group-open:rotate-180 transition"></i>
+                <details class="group bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <summary class="list-none p-5 flex justify-between items-center cursor-pointer">
+                        <span class="text-[15px] font-bold text-blue-900">신랑측 계좌번호</span>
+                        <i class="fa-solid fa-chevron-down text-xs group-open:rotate-180 transition text-gray-300"></i>
                     </summary>
-                    <div class="p-4 pt-0 border-t border-gray-100 text-sm space-y-3">
-                        <div class="flex justify-between items-center py-2 border-b border-dashed">
-                            <span id="acc-groom-1" class="editable">농협 356-1266-6075-53(장덕진)</span>
-                            <button onclick="copyText('acc-groom-1')" class="text-[10px] bg-gray-100 px-2 py-1 rounded">복사</button>
+                    <div class="p-5 pt-0 border-t border-gray-50 text-sm space-y-4">
+                        <div class="flex justify-between items-center py-2">
+                            <span id="acc-groom-1" class="editable font-medium text-gray-700">농협 356-1266-6075-53 (장덕진)</span>
+                            <button onclick="copyText('acc-groom-1')" class="text-[11px] bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-100 font-bold text-gray-500">복사</button>
                         </div>
                     </div>
                 </details>
-                <details class="group bg-white rounded-lg border">
-                    <summary class="list-none p-4 flex justify-between items-center cursor-pointer">
-                        <span class="text-sm font-bold text-rose-900">신부측 계좌번호</span>
-                        <i class="fa-solid fa-chevron-down text-xs group-open:rotate-180 transition"></i>
+                <details class="group bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <summary class="list-none p-5 flex justify-between items-center cursor-pointer">
+                        <span class="text-[15px] font-bold text-rose-900">신부측 계좌번호</span>
+                        <i class="fa-solid fa-chevron-down text-xs group-open:rotate-180 transition text-gray-300"></i>
                     </summary>
-                    <div class="p-4 pt-0 border-t border-gray-100 text-sm space-y-3">
-                        <div class="flex justify-between items-center py-2 border-b border-dashed">
-                            <span id="acc-bride-1" class="editable">우리 000-000-000000 (이영리)</span>
-                            <button onclick="copyText('acc-bride-1')" class="text-[10px] bg-gray-100 px-2 py-1 rounded">복사</button>
+                    <div class="p-5 pt-0 border-t border-gray-50 text-sm space-y-4">
+                        <div class="flex justify-between items-center py-2">
+                            <span id="acc-bride-1" class="editable font-medium text-gray-700">우리 000-000-000000 (이영리)</span>
+                            <button onclick="copyText('acc-bride-1')" class="text-[11px] bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-100 font-bold text-gray-500">복사</button>
                         </div>
                     </div>
                 </details>
             </div>
         </section>
 
-        <footer class="py-20 text-center bg-white border-t">
-            <p class="text-[10px] tracking-[0.2em] text-gray-300">THANK YOU</p>
+        <footer class="py-24 text-center bg-white">
+            <p class="text-[10px] tracking-[0.4em] text-gray-300">THANK YOU FOR YOUR BLESSING</p>
         </footer>
     </div>
 
     <script>
         const galleryData = {"gallery-1":"https://i.postimg.cc/Y0sttVzw/A(278).jpg","gallery-2":"https://i.postimg.cc/662W06W6/A(856).jpg","gallery-3":"https://i.postimg.cc/zBLr0prf/A(976).jpg","gallery-4":"https://i.postimg.cc/50yGft7n/A(609).jpg","gallery-5":"https://i.postimg.cc/k4Vmfwm7/A(990).jpg","gallery-6":"https://i.postimg.cc/QtCPjM45/A(634).jpg","gallery-7":"https://i.postimg.cc/m23GXt0g/B(452).jpg","gallery-8":"https://i.postimg.cc/ncfJGvS5/B(138).jpg","gallery-9":"https://i.postimg.cc/prD366cC/B(583).jpg","gallery-10":"https://i.postimg.cc/6p6FMzrj/C(155).jpg","gallery-11":"https://i.postimg.cc/HkSRR53T/C(367).jpg","gallery-12":"https://i.postimg.cc/W19CCrSN/C(220).jpg"};
-        let currentLightboxIndex = 1;
         let clickCount = 0;
 
         window.onload = function() {
@@ -282,23 +281,17 @@
             const container = document.getElementById('gallery-container');
             for(let i=1; i<=12; i++) {
                 const item = document.createElement('div');
-                item.className = "gallery-item";
-                item.innerHTML = `<img id="gallery-${i}" src="${galleryData['gallery-'+i]}" onclick="openLightbox(${i})">`;
+                item.className = "gallery-item shadow-sm hover:brightness-90 transition";
+                item.innerHTML = `<img id="gallery-${i}" src="${galleryData['gallery-'+i]}" onclick="openLightbox('${galleryData['gallery-'+i]}')">`;
                 container.appendChild(item);
             }
         }
-        function openLightbox(i) {
-            currentLightboxIndex = i;
-            document.getElementById('lightbox-img').src = document.getElementById(`gallery-${i}`).src;
+        function openLightbox(src) {
+            document.getElementById('lightbox-img').src = src;
             document.getElementById('lightbox').style.display = 'flex';
         }
         function closeLightbox() { document.getElementById('lightbox').style.display = 'none'; }
-        function changeLightboxImage(dir) {
-            currentLightboxIndex += dir;
-            if(currentLightboxIndex < 1) currentLightboxIndex = 12;
-            if(currentLightboxIndex > 12) currentLightboxIndex = 1;
-            openLightbox(currentLightboxIndex);
-        }
+        
         function copyText(id) {
             const t = document.getElementById(id).innerText.split('(')[0].trim();
             navigator.clipboard.writeText(t).then(() => alert("계좌번호가 복사되었습니다."));
@@ -307,7 +300,7 @@
             clickCount++;
             if(clickCount >= 5) {
                 document.getElementById('admin-panel').style.display = 'flex';
-                alert("관리 도구가 활성화되었습니다.");
+                alert("관리자 편집 모드가 활성화되었습니다.");
             }
         }
         function toggleEditMode() {
@@ -317,7 +310,7 @@
             editable.forEach(el => el.contentEditable = isEditing);
         }
         function saveToLocal() {
-            alert("편집 완료! 현재 브라우저에 임시 저장되었습니다.");
+            alert("편집 사항은 현재 브라우저에 임시 반영되었습니다. 최종 배포 시 코드를 다시 저장해 주세요.");
         }
     </script>
 </body>
