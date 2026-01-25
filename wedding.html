@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>우리의 결혼식에 초대합니다</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Myeongjo:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-bg: #ffffff;
+            --secondary-bg: #fcfaf9;
+            --accent-color: #b89b8e;
+            --text-main: #333333;
+        }
+        body {
+            font-family: 'Gowun Batang', serif;
+            color: var(--text-main);
+            background-color: #f3f3f3;
+            line-height: 1.8;
+        }
+        .app-container {
+            max-width: 450px;
+            margin: 0 auto;
+            background-color: var(--primary-bg);
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            position: relative;
+            min-height: 100vh;
+        }
+        section { padding: 60px 20px; text-align: center; }
+        .section-title {
+            font-family: 'Nanum Myeongjo', serif;
+            font-size: 1.25rem;
+            color: var(--accent-color);
+            margin-bottom: 2rem;
+            letter-spacing: 3px;
+        }
+        
+        /* --- 편집 모드 레이아웃 개선 --- */
+        .editable { transition: all 0.3s; border-radius: 4px; padding: 2px 8px; display: inline-block; }
+        .edit-mode .editable { 
+            position: relative;
+            z-index: 50; /* 텍스트가 버튼보다 위로 오게 함 */
+            background-color: rgba(255, 255, 255, 0.5);
+            outline: 1px dashed var(--accent-color);
+        }
+        .edit-mode .editable:hover { background-color: #fff; cursor: pointer; }
+        .edit-mode .editable:focus { background-color: #fff; outline: 2px solid var(--accent-color); }
+        
+        /* 지시자 숨김/표시 최적화 */
+        .edit-indicator { display: none !important; }
+        .edit-mode .edit-indicator { display: flex !important; }
+
+        .admin-panel {
+            position: fixed;
+            top: 20px; right: 20px; z-index: 9999;
+            display: flex; gap: 8px;
+        }
+        .hidden-panel { display: none !important; }
+        
+        .main-visual { position: relative; height: 100vh; overflow: hidden; display: flex; flex-direction: column; justify-content: center; background: #eee; }
+        .main-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: 0; transition: opacity 0.5s; }
+        .main-img.loaded { opacity: 1; }
+        
+        /* 메인 오버레이 수정: 텍스트 영역이 클릭을 방해받지 않도록 z-index 조정 */
+        .main-overlay { position: relative; z-index: 10; background: rgba(255,255,255,0.1); height: 100%; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 80px; }
+        
+        .gallery-item { position: relative; overflow: hidden; border-radius: 4px; aspect-ratio: 1/1; cursor: pointer; }
+        .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+
+        #lightbox {
+            display: none;
+            position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            justify-content: center; align-items: center; flex-direction: column;
+        }
+        #lightbox img { max-width: 90%; max-height: 80%; object-fit: contain; }
+        .lightbox-nav { color: white; font-size: 2rem; padding: 20px; cursor: pointer; user-select: none; }
+        .lightbox-close { position: absolute; top: 20px; right: 20px; color: white; font-size: 2rem; cursor: pointer; }
+
+        .map-container { position: relative; overflow: hidden; border-radius: 8px; margin: 20px 0; background: #f0f0f0; min-height: 200px; }
+        .map-img { width: 100%; height: auto; display: block; object-fit: cover; }
+    </style>
+</head>
+<body class="edit-mode-disabled">
+
+    <div class="admin-panel">
+        <button id="toggle-edit" onclick="toggleEditMode()" class="bg-black/70 text-white px-4 py-2 rounded-full text-xs backdrop-blur-md shadow-lg hover:bg-black transition">편집 모드 켜기</button>
+        <button id="save-data" onclick="saveToLocal()" class="bg-rose-400 text-white px-4 py-2 rounded-full text-xs font-bold hidden-panel shadow-lg hover:bg-rose-500 transition">저장하기</button>
+    </div>
+
+    <div id="lightbox">
+        <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+        <div class="flex items-center w-full justify-between px-4">
+            <span class="lightbox-nav" onclick="changeLightboxImage(-1)">&#10094;</span>
+            <img id="lightbox-img" src="">
+            <span class="lightbox-nav" onclick="changeLightboxImage(1)">&#10095;</span>
+        </div>
+    </div>
+
+    <div class="app-container" id="app">
+        <!-- 1. 메인 섹션 -->
+        <div class="main-visual">
+            <img id="main-img-tag" class="main-img">
+            <div class="main-overlay">
+                <!-- 텍스트 영역 -->
+                <div class="bg-white/80 py-10 px-6 backdrop-blur-sm relative z-20">
+                    <p class="text-xs tracking-[0.3em] text-gray-500 mb-4 text-center">WE ARE GETTING MARRIED</p>
+                    <h1 class="text-3xl font-light mb-6 tracking-widest text-center">
+                        <span id="groom" class="editable">김철수</span> 
+                        <span class="text-gray-300 mx-1">|</span> 
+                        <span id="bride" class="editable">이영희</span>
+                    </h1>
+                    <p id="wedding-info-top" class="editable text-sm text-gray-600 text-center w-full">2026. 05. 26. 토요일 오후 12:00<br>그랜드 호텔 웨딩홀</p>
+                </div>
+                
+                <!-- [해결책] 사진 변경 버튼을 하단 텍스트 영역 밖으로 이동 -->
+                <div class="edit-indicator flex justify-center py-4 relative z-50">
+                    <button onclick="changeImageUrl('main-img-tag')" class="bg-black text-white text-[10px] px-4 py-2 rounded-full shadow-xl font-bold border border-white/20">
+                        <i class="fa-solid fa-camera mr-1"></i> 메인 배경 사진 교체
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 초대 인사 -->
+        <section class="bg-white">
+            <h3 class="section-title">INVITATION</h3>
+            <p id="intro-msg" class="editable whitespace-pre-line text-sm text-gray-600 leading-8 w-full">
+                저희 두 사람이 사랑으로 만나
+                진실한 마음으로 한 가정을 이루게 되었습니다.
+                
+                귀한 걸음으로 저희의 앞날을
+                축복해 주시면 더없는 기쁨으로 간직하겠습니다.
+            </p>
+        </section>
+
+        <!-- 4. 갤러리 -->
+        <section>
+            <h3 class="section-title">GALLERY</h3>
+            <div id="gallery-container" class="grid grid-cols-3 gap-1 px-2">
+                <div class="gallery-item"><img id="gallery-1" class="gallery-img" onclick="handleGalleryClick(1)"></div>
+                <div class="gallery-item"><img id="gallery-2" class="gallery-img" onclick="handleGalleryClick(2)"></div>
+                <div class="gallery-item"><img id="gallery-3" class="gallery-img" onclick="handleGalleryClick(3)"></div>
+                <div class="gallery-item"><img id="gallery-4" class="gallery-img" onclick="handleGalleryClick(4)"></div>
+                <div class="gallery-item"><img id="gallery-5" class="gallery-img" onclick="handleGalleryClick(5)"></div>
+                <div class="gallery-item"><img id="gallery-6" class="gallery-img" onclick="handleGalleryClick(6)"></div>
+            </div>
+        </section>
+
+        <!-- 5. 찾아오시는 길 -->
+        <section class="bg-[#fcfaf9]">
+            <h3 class="section-title">LOCATION</h3>
+            <p id="loc-name" class="editable font-bold text-lg">그랜드 호텔 웨딩홀</p>
+            <br>
+            <p id="loc-addr" class="editable text-xs text-gray-500 mt-1">서울특별시 강남구 테헤란로 123</p>
+            
+            <div class="map-container">
+                <img id="map-img-tag" class="map-img">
+                <!-- [해결책] 약도 변경 버튼도 이미지 하단에 작게 배치하여 이미지 확인 방해 최소화 -->
+                <div class="edit-indicator absolute bottom-4 right-4 z-50">
+                    <button onclick="changeImageUrl('map-img-tag')" class="bg-black text-white text-[10px] px-3 py-2 rounded-lg shadow-xl font-bold opacity-90 hover:opacity-100">
+                        약도 교체
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <a id="map-link-btn" href="https://map.naver.com" target="_blank" class="inline-block bg-[#fee500] text-black text-sm px-6 py-3 rounded-lg font-bold shadow-sm">
+                    <i class="fa-solid fa-map-location-dot mr-2"></i>지도 앱에서 열기
+                </a>
+                <div class="edit-indicator flex justify-center mt-2">
+                    <button onclick="changeMapLink()" class="text-[10px] bg-gray-200 px-2 py-1 rounded">링크 주소 변경</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. 계좌번호 -->
+        <section>
+            <h3 class="section-title">GIFT</h3>
+            <p class="text-xs text-gray-400 mb-8">축하의 마음을 담아 마음 전하실 곳</p>
+            <div class="space-y-4 text-left">
+                <details class="group bg-gray-50 rounded-lg">
+                    <summary class="list-none p-4 flex justify-between items-center cursor-pointer">
+                        <span class="text-sm font-bold text-blue-900">신랑측 계좌번호</span>
+                        <i class="fa-solid fa-chevron-down text-xs group-open:rotate-180 transition"></i>
+                    </summary>
+                    <div class="p-4 pt-0 border-t border-gray-100 text-sm">
+                        <div class="flex justify-between items-center py-2">
+                            <span id="acc-groom-1" class="editable w-full">국민 000-000-000000 (김철수)</span>
+                            <button onclick="copyText('acc-groom-1')" class="text-[10px] bg-white border px-2 py-1 rounded ml-2 whitespace-nowrap">복사</button>
+                        </div>
+                    </div>
+                </details>
+                <details class="group bg-gray-50 rounded-lg">
+                    <summary class="list-none p-4 flex justify-between items-center cursor-pointer">
+                        <span class="text-sm font-bold text-rose-900">신부측 계좌번호</span>
+                        <i class="fa-solid fa-chevron-down text-xs group-open:rotate-180 transition"></i>
+                    </summary>
+                    <div class="p-4 pt-0 border-t border-gray-100 text-sm">
+                        <div class="flex justify-between items-center py-2">
+                            <span id="acc-bride-1" class="editable w-full">우리 000-000-000000 (이영희)</span>
+                            <button onclick="copyText('acc-bride-1')" class="text-[10px] bg-white border px-2 py-1 rounded ml-2 whitespace-nowrap">복사</button>
+                        </div>
+                    </div>
+                </details>
+            </div>
+        </section>
+
+        <footer class="py-20 text-center bg-white border-t">
+            <p class="text-[10px] tracking-[0.2em] text-gray-300">THANK YOU</p>
+        </footer>
+    </div>
+
+    <script>
+        const defaultData = {
+            main_img: "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
+            map_img: "https://via.placeholder.com/600x400?text=Map+Screenshot",
+            map_link: "https://map.naver.com",
+            gallery: {
+                "gallery-1": "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400",
+                "gallery-2": "https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=400",
+                "gallery-3": "https://images.unsplash.com/photo-1519225495810-753b55200c1b?w=400",
+                "gallery-4": "https://images.unsplash.com/photo-1544161513-0179fe746fd5?w=400",
+                "gallery-5": "https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?w=400",
+                "gallery-6": "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400"
+            }
+        };
+
+        let isEditMode = false;
+        let currentLightboxIndex = 1;
+
+        window.onload = function() {
+            loadAllData();
+        };
+
+        function loadAllData() {
+            const saved = localStorage.getItem('wedding_full_data_v3');
+            const data = saved ? JSON.parse(saved) : {};
+
+            document.querySelectorAll('.editable').forEach(el => {
+                if (data[el.id]) el.innerText = data[el.id];
+            });
+
+            const mainImg = document.getElementById('main-img-tag');
+            mainImg.src = data.main_img || defaultData.main_img;
+            mainImg.onload = () => mainImg.classList.add('loaded');
+            
+            document.getElementById('map-img-tag').src = data.map_img || defaultData.map_img;
+            document.getElementById('map-link-btn').href = data.map_link || defaultData.map_link;
+
+            const savedGallery = data.gallery || defaultData.gallery;
+            for (let id in savedGallery) {
+                const img = document.getElementById(id);
+                if (img) img.src = savedGallery[id];
+            }
+        }
+
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const btn = document.getElementById('toggle-edit');
+            const saveBtn = document.getElementById('save-data');
+            const body = document.body;
+
+            if (isEditMode) {
+                btn.innerText = "편집 종료";
+                btn.classList.replace('bg-black/70', 'bg-red-500');
+                saveBtn.classList.remove('hidden-panel');
+                document.querySelectorAll('.editable').forEach(el => el.setAttribute('contenteditable', 'true'));
+                body.classList.add('edit-mode');
+            } else {
+                btn.innerText = "편집 모드 켜기";
+                btn.classList.replace('bg-red-500', 'bg-black/70');
+                saveBtn.classList.add('hidden-panel');
+                document.querySelectorAll('.editable').forEach(el => el.setAttribute('contenteditable', 'false'));
+                body.classList.remove('edit-mode');
+            }
+        }
+
+        function changeImageUrl(id) {
+            const el = document.getElementById(id);
+            const url = prompt("새로운 이미지 주소(URL)를 입력하세요:", el.src);
+            if (url) el.src = url;
+        }
+
+        function changeMapLink() {
+            const el = document.getElementById('map-link-btn');
+            const url = prompt("지도 연결 URL을 입력하세요:", el.href);
+            if (url) el.href = url;
+        }
+
+        function saveToLocal() {
+            const data = {};
+            document.querySelectorAll('.editable').forEach(el => { data[el.id] = el.innerText; });
+            data.main_img = document.getElementById('main-img-tag').src;
+            data.map_img = document.getElementById('map-img-tag').src;
+            data.map_link = document.getElementById('map-link-btn').href;
+            data.gallery = {};
+            for(let i=1; i<=6; i++) {
+                const id = `gallery-${i}`;
+                data.gallery[id] = document.getElementById(id).src;
+            }
+            localStorage.setItem('wedding_full_data_v3', JSON.stringify(data));
+            alert("저장되었습니다!");
+        }
+
+        function handleGalleryClick(index) {
+            if (isEditMode) {
+                changeImageUrl(`gallery-${index}`);
+            } else {
+                openLightbox(index);
+            }
+        }
+
+        function openLightbox(index) {
+            currentLightboxIndex = index;
+            document.getElementById('lightbox-img').src = document.getElementById(`gallery-${index}`).src;
+            document.getElementById('lightbox').style.display = 'flex';
+        }
+
+        function closeLightbox() { document.getElementById('lightbox').style.display = 'none'; }
+
+        function changeLightboxImage(dir) {
+            currentLightboxIndex += dir;
+            if (currentLightboxIndex < 1) currentLightboxIndex = 6;
+            if (currentLightboxIndex > 6) currentLightboxIndex = 1;
+            openLightbox(currentLightboxIndex);
+        }
+
+        function copyText(id) {
+            const text = document.getElementById(id).innerText.split('(')[0].trim();
+            navigator.clipboard.writeText(text).then(() => alert("복사되었습니다."));
+        }
+    </script>
+</body>
+</html>
