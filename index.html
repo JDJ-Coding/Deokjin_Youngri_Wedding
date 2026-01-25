@@ -13,10 +13,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        /**
-         * 🔥 중요: 아래 값을 Firebase 콘솔에서 복사한 실제 값으로 반드시 교체해야 합니다.
-         * '여기에_복사한_...' 문구가 남아있으면 에러가 발생합니다.
-         */
+        // 🔥 본인의 Firebase 설정값을 여기에 다시 입력해주세요.
         const firebaseConfig = {
             apiKey: "AIzaSyAhyaqxkX9_CZvnzDn4Ok0qQWQGdppnt-M",
             authDomain: "wedding-ccf16.firebaseapp.com",
@@ -27,12 +24,10 @@
             measurementId: "G-7SCHX376W3"
         };
 
-        // Firebase 초기화
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const guestbookRef = collection(db, "guestbook");
 
-        // 방명록 등록 함수
         window.addGuestMessage = async function() {
             const nameEl = document.getElementById('guest-name');
             const msgEl = document.getElementById('guest-msg');
@@ -55,15 +50,10 @@
                 alert("축하 메시지가 등록되었습니다!");
             } catch (e) {
                 console.error("Firebase Error: ", e);
-                if(e.code === 'permission-denied') {
-                    alert("권한 오류: Firebase 콘솔에서 'Rules'를 누르고 'allow read, write: if true;'로 설정했는지 확인해주세요.");
-                } else {
-                    alert("등록 실패! 네트워크 상태나 설정을 확인해주세요.");
-                }
+                alert("등록 실패! Firebase 설정을 확인해주세요.");
             }
         };
 
-        // 실시간 방명록 데이터 불러오기
         const q = query(guestbookRef, orderBy("timestamp", "desc"));
         onSnapshot(q, (snapshot) => {
             const list = document.getElementById('guest-list');
@@ -72,7 +62,7 @@
                 const data = doc.data();
                 const date = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleDateString() : '방금 전';
                 list.innerHTML += `
-                    <div class="bg-gray-50 p-4 rounded-lg text-sm border border-gray-100">
+                    <div class="bg-gray-50 p-4 rounded-lg text-sm border border-gray-100 text-left">
                         <div class="font-bold mb-1">${data.name} <span class="text-[10px] font-normal text-gray-400 ml-2">${date}</span></div>
                         <div class="text-gray-600 leading-relaxed">${data.msg}</div>
                     </div>
@@ -129,7 +119,7 @@
             justify-content: center; align-items: center; flex-direction: column;
         }
         #lightbox img { max-width: 90%; max-height: 80%; object-fit: contain; }
-        .map-container { position: relative; overflow: hidden; border-radius: 8px; margin: 20px 0; background: #f0f0f0; min-height: 200px; }
+        .map-container { position: relative; overflow: hidden; border-radius: 8px; margin: 20px 0; background: #f0f0f0; min-height: 100px; }
         .map-img { width: 100%; height: auto; display: block; object-fit: cover; }
         
         #admin-trigger { position: fixed; bottom: 0; right: 0; width: 40px; height: 40px; z-index: 999; cursor: default; }
@@ -155,6 +145,7 @@
     </div>
 
     <div class="app-container">
+        <!-- 메인 섹션 -->
         <div class="main-visual">
             <img id="main-img-tag" class="main-img" src="https://i.postimg.cc/Lst4jx2C/A(185).jpg">
             <div class="main-overlay">
@@ -171,10 +162,10 @@
             </div>
         </div>
 
+        <!-- 초대 인사 -->
         <section class="bg-white">
             <h3 class="section-title">INVITATION</h3>
-            <p id="intro-msg" class="editable whitespace-pre-line text-sm text-gray-600 leading-8 w-full text-center">
-전주에서 온 남자와
+            <p id="intro-msg" class="editable whitespace-pre-line text-sm text-gray-600 leading-8 w-full">전주에서 온 남자와
 포항에서 자란 여자가
 입맛이 맞더니 마음도 맞게 되었고,
 그 인연으로
@@ -190,25 +181,36 @@
 더욱 빛내 주시길 바라옵니다.</p>
         </section>
 
+        <!-- 갤러리 -->
         <section>
             <h3 class="section-title">GALLERY</h3>
             <div id="gallery-container" class="grid grid-cols-3 gap-1 px-2"></div>
         </section>
 
+        <!-- 찾아오시는 길 -->
         <section class="bg-[#fcfaf9]">
             <h3 class="section-title">LOCATION</h3>
             <p id="loc-name" class="editable font-bold text-lg">포마레 웨딩 컨벤션</p>
             <p id="loc-addr" class="editable text-xs text-gray-500 mt-1">경북 포항시 남구 희망대로 815</p>
+            
+            <!-- 기존 약도 이미지 -->
             <div class="map-container">
                 <img id="map-img-tag" class="map-img" src="https://i.postimg.cc/jd6LHqcJ/yagdo2.jpg">
             </div>
-            <div class="mb-8 text-center">
+
+            <!-- 🔥 요청하신 추가 이미지 공간 (아래 src="이미지주소" 부분을 수정하세요) -->
+            <div class="map-container mb-6">
+                <img id="extra-map-image" class="map-img" src="https://i.postimg.cc/gcfQ88k3/jucha-annae.jpg" alt="주차 안내 등 추가 정보">
+            </div>
+
+            <div class="mb-8">
                 <a id="map-link-btn" href="https://naver.me/GUwSUdPw" target="_blank" class="inline-block bg-[#fee500] text-black text-sm px-6 py-3 rounded-lg font-bold">
                     <i class="fa-solid fa-map-location-dot mr-2"></i>지도 앱에서 열기
                 </a>
             </div>
         </section>
 
+        <!-- 방명록 -->
         <section class="bg-white">
             <h3 class="section-title">GUESTBOOK</h3>
             <div class="px-4 text-left">
@@ -217,12 +219,11 @@
                     <textarea id="guest-msg" placeholder="축하 메시지를 남겨주세요" class="w-full p-2 text-sm border rounded h-20"></textarea>
                     <button onclick="addGuestMessage()" class="w-full mt-2 bg-rose-300 text-white py-2 rounded font-bold text-sm">등록하기</button>
                 </div>
-                <div id="guest-list" class="space-y-4 max-h-[400px] overflow-y-auto">
-                    <!-- Firebase 데이터 로딩 영역 -->
-                </div>
+                <div id="guest-list" class="space-y-4 max-h-[400px] overflow-y-auto"></div>
             </div>
         </section>
 
+        <!-- 계좌번호 -->
         <section class="bg-[#fcfaf9]">
             <h3 class="section-title">GIFT</h3>
             <div class="space-y-4 text-left">
@@ -231,7 +232,7 @@
                         <span class="text-sm font-bold text-blue-900">신랑측 계좌번호</span>
                         <i class="fa-solid fa-chevron-down text-xs group-open:rotate-180 transition"></i>
                     </summary>
-                    <div id="acc-list-groom" class="p-4 pt-0 border-t border-gray-100 text-sm space-y-3">
+                    <div class="p-4 pt-0 border-t border-gray-100 text-sm space-y-3">
                         <div class="flex justify-between items-center py-2 border-b border-dashed">
                             <span id="acc-groom-1" class="editable">농협 356-1266-6075-53(장덕진)</span>
                             <button onclick="copyText('acc-groom-1')" class="text-[10px] bg-gray-100 px-2 py-1 rounded">복사</button>
@@ -243,7 +244,7 @@
                         <span class="text-sm font-bold text-rose-900">신부측 계좌번호</span>
                         <i class="fa-solid fa-chevron-down text-xs group-open:rotate-180 transition"></i>
                     </summary>
-                    <div id="acc-list-bride" class="p-4 pt-0 border-t border-gray-100 text-sm space-y-3">
+                    <div class="p-4 pt-0 border-t border-gray-100 text-sm space-y-3">
                         <div class="flex justify-between items-center py-2 border-b border-dashed">
                             <span id="acc-bride-1" class="editable">우리 000-000-000000 (이영리)</span>
                             <button onclick="copyText('acc-bride-1')" class="text-[10px] bg-gray-100 px-2 py-1 rounded">복사</button>
@@ -277,7 +278,6 @@
                 container.appendChild(item);
             }
         }
-
         function openLightbox(i) {
             currentLightboxIndex = i;
             document.getElementById('lightbox-img').src = document.getElementById(`gallery-${i}`).src;
@@ -308,7 +308,7 @@
             editable.forEach(el => el.contentEditable = isEditing);
         }
         function saveToLocal() {
-            alert("편집 내용은 현재 브라우저에 저장되었습니다. 영구 반영을 원하시면 코드를 업데이트하세요.");
+            alert("편집 완료! 현재 브라우저에 임시 저장되었습니다.");
         }
     </script>
 </body>
