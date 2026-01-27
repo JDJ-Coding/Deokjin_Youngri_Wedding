@@ -11,7 +11,7 @@
     <!-- Firebase SDK 로드 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAhyaqxkX9_CZvnzDn4Ok0qQWQGdppnt-M",
@@ -27,43 +27,78 @@
         const db = getFirestore(app);
         const guestbookRef = collection(db, "guestbook");
 
+        // [등록 기능] 이름, 비밀번호, 메시지를 함께 저장합니다.
         window.addGuestMessage = async function() {
             const nameEl = document.getElementById('guest-name');
+            const pwEl = document.getElementById('guest-pw');
             const msgEl = document.getElementById('guest-msg');
-            const name = nameEl.value;
-            const msg = msgEl.value;
 
-            if(!name.trim() || !msg.trim()) {
-                alert("이름과 메시지를 입력해주세요.");
+            if(!nameEl.value.trim() || !pwEl.value.trim() || !msgEl.value.trim()) {
+                alert("이름, 비밀번호, 내용을 모두 입력해주세요.");
                 return;
             }
 
             try {
                 await addDoc(guestbookRef, {
-                    name: name,
-                    msg: msg,
+                    name: nameEl.value,
+                    pw: pwEl.value,
+                    msg: msgEl.value,
                     timestamp: serverTimestamp()
                 });
-                nameEl.value = '';
-                msgEl.value = '';
+                nameEl.value = ''; pwEl.value = ''; msgEl.value = '';
                 alert("축하 메시지가 등록되었습니다!");
             } catch (e) {
-                console.error("Firebase Error: ", e);
-                alert("등록 실패! Firebase 설정을 확인해주세요.");
+                console.error("Error: ", e);
+                alert("등록 실패!");
             }
         };
 
+        // [삭제 기능] 비밀번호 확인 후 삭제합니다.
+        window.deleteMessage = async function(id, originalPw) {
+            const inputPw = prompt("비밀번호를 입력해주세요.");
+            if (inputPw === originalPw) {
+                if(confirm("정말 삭제하시겠습니까?")) {
+                    await deleteDoc(doc(db, "guestbook", id));
+                    alert("삭제되었습니다.");
+                }
+            } else if (inputPw !== null) {
+                alert("비밀번호가 일치하지 않습니다.");
+            }
+        };
+
+        // [수정 기능] 비밀번호 확인 후 내용을 수정합니다.
+        window.editMessage = async function(id, originalPw, currentMsg) {
+            const inputPw = prompt("비밀번호를 입력해주세요.");
+            if (inputPw === originalPw) {
+                const newMsg = prompt("수정할 내용을 입력해주세요.", currentMsg);
+                if (newMsg && newMsg !== currentMsg) {
+                    await updateDoc(doc(db, "guestbook", id), { msg: newMsg });
+                    alert("수정되었습니다.");
+                }
+            } else if (inputPw !== null) {
+                alert("비밀번호가 일치하지 않습니다.");
+            }
+        };
+
+        // [목록 불러오기] 실시간으로 목록을 그리고 수정/삭제 버튼을 연결합니다.
         const q = query(guestbookRef, orderBy("timestamp", "desc"));
         onSnapshot(q, (snapshot) => {
             const list = document.getElementById('guest-list');
             list.innerHTML = '';
-            snapshot.forEach((doc) => {
-                const data = doc.data();
+            snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                const id = docSnap.id;
                 const date = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleDateString() : '방금 전';
                 list.innerHTML += `
-                    <div class="bg-white p-4 rounded-lg text-sm border border-gray-100 text-left shadow-sm">
-                        <div class="font-bold mb-1 text-gray-800">${data.name} <span class="text-[10px] font-normal text-gray-400 ml-2">${date}</span></div>
-                        <div class="text-gray-600 leading-relaxed">${data.msg}</div>
+                    <div class="bg-white p-4 rounded-lg text-sm border border-gray-100 text-left shadow-sm relative">
+                        <div class="flex justify-between items-start mb-1">
+                            <div class="font-bold text-gray-800">${data.name} <span class="text-[10px] font-normal text-gray-400 ml-2">${date}</span></div>
+                            <div class="flex gap-2 text-[10px] text-gray-400">
+                                <button onclick="editMessage('${id}', '${data.pw}', '${data.msg}')" class="hover:text-rose-400">수정</button>
+                                <button onclick="deleteMessage('${id}', '${data.pw}')" class="hover:text-rose-400">삭제</button>
+                            </div>
+                        </div>
+                        <div class="text-gray-600 leading-relaxed break-all">${data.msg}</div>
                     </div>
                 `;
             });
@@ -243,7 +278,10 @@
             <h3 class="section-title">GUESTBOOK</h3>
             <div class="px-2 text-left">
                 <div class="mb-8 bg-gray-50 p-5 rounded-2xl border border-gray-100 shadow-inner">
-                    <input type="text" id="guest-name" placeholder="성함" class="w-full mb-3 p-3 text-sm border-none rounded-xl focus:ring-2 focus:ring-rose-200 outline-none">
+                    <div class="flex gap-2 mb-3">
+                        <input type="text" id="guest-name" placeholder="성함" class="w-1/2 p-3 text-sm border-none rounded-xl focus:ring-2 focus:ring-rose-200 outline-none">
+                        <input type="password" id="guest-pw" placeholder="비밀번호" class="w-1/2 p-3 text-sm border-none rounded-xl focus:ring-2 focus:ring-rose-200 outline-none">
+                    </div>
                     <textarea id="guest-msg" placeholder="두 사람에게 축복의 한마디를 남겨주세요" class="w-full p-3 text-sm border-none rounded-xl h-24 focus:ring-2 focus:ring-rose-200 outline-none resize-none"></textarea>
                     <button onclick="addGuestMessage()" class="w-full mt-3 bg-rose-300 hover:bg-rose-400 text-white py-4 rounded-xl font-bold text-sm shadow-md transition active:translate-y-1">메시지 등록하기</button>
                 </div>
