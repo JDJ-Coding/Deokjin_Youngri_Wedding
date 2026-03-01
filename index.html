@@ -960,29 +960,34 @@
         }
 
         function downloadICS() {
-            const icsContent = [
-                'BEGIN:VCALENDAR',
-                'VERSION:2.0',
-                'PRODID:-//Wedding Invitation//NONSGML v1.0//EN',
-                'BEGIN:VEVENT',
-                'UID:' + Date.now() + '@wedding.com',
-                'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z',
-                'DTSTART;TZID=Asia/Seoul:20260411T130000',
-                'DTEND;TZID=Asia/Seoul:20260411T150000',
-                'SUMMARY:장덕진 & 이영리 결혼식',
-                'DESCRIPTION:포마레 웨딩 컨벤션 5층 컨벤션홀',
-                'LOCATION:경북 포항시 남구 희망대로 815',
-                'END:VEVENT',
-                'END:VCALENDAR'
-            ].join('\r\n');
-
-            // iOS Safari는 blob URL 방식이 동작하지 않으므로 data URI 사용
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
             if (isIOS) {
-                const dataUri = 'data:text/calendar;charset=utf8,' + encodeURIComponent(icsContent);
-                window.location.href = dataUri;
+                // iOS: webcal:// 프로토콜로 GitHub Pages에 올린 wedding.ics 파일 열기
+                // Apple Calendar가 자동으로 구독/추가 팝업을 띄워줌
+                const base = window.location.href.replace(/\/[^\/]*$/, '');
+                const webcalUrl = (base + '/wedding.ics').replace(/^https?:\/\//, 'webcal://');
+                window.location.href = webcalUrl;
             } else {
+                // PC / Android: 파일 다운로드
+                const icsContent = [
+                    'BEGIN:VCALENDAR',
+                    'VERSION:2.0',
+                    'PRODID:-//Wedding Invitation//NONSGML v1.0//EN',
+                    'CALSCALE:GREGORIAN',
+                    'METHOD:PUBLISH',
+                    'BEGIN:VEVENT',
+                    'UID:deokjin-youngri-wedding-20260411@wedding.com',
+                    'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z',
+                    'DTSTART;TZID=Asia/Seoul:20260411T130000',
+                    'DTEND;TZID=Asia/Seoul:20260411T150000',
+                    'SUMMARY:장덕진 & 이영리 결혼식',
+                    'DESCRIPTION:포마레 웨딩 컨벤션 5층 컨벤션홀\\n경북 포항시 남구 희망대로 815',
+                    'LOCATION:경북 포항시 남구 희망대로 815',
+                    'END:VEVENT',
+                    'END:VCALENDAR'
+                ].join('\r\n');
+
                 const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
