@@ -664,10 +664,10 @@
 
             <div class="flex-grow"></div>
 
-            <a href="링크" target="_blank" class="w-16 h-16 flex flex-col items-center justify-center bg-[#b89b8e] text-white rounded-xl font-bold shadow-sm active:scale-95 transition text-center px-1 translate-x-5">
+            <button onclick="document.getElementById('travel-map-modal').classList.remove('hidden')" class="w-16 h-16 flex flex-col items-center justify-center bg-[#b89b8e] text-white rounded-xl font-bold shadow-sm active:scale-95 transition text-center px-1 translate-x-5">
                 <i class="fa-solid fa-route text-lg"></i>
                 <span class="text-[8px] mt-0.5 font-bold leading-[1.1]">덕진&영리<br>추천 코스</span>
-            </a>
+            </button>
         </div>
         </section>
 
@@ -1057,5 +1057,11 @@
             }
         }
     </script>
+
+    <!-- 여행지도 모달 -->
+    <div id="travel-map-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4" onclick="this.classList.add('hidden')">
+        <img src="사진/포항여행지도.png" class="max-w-full max-h-full rounded-xl shadow-2xl object-contain" onclick="event.stopPropagation()">
+        <button onclick="document.getElementById('travel-map-modal').classList.add('hidden')" class="absolute top-4 right-4 text-white text-3xl leading-none">&times;</button>
+    </div>
 </body>
 </html>
